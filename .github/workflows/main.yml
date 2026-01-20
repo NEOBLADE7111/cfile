@@ -11,19 +11,19 @@ jobs:
           sudo apt-get install -y hping3 tcpdump
       - name: Run spoofing tests
         run: |
-          # Set up packet capture
+          # Set up packet capture with root
           sudo tcpdump -i any -w spoofed.pcap &
           CAPTURE_PID=$!
           
-          # Send spoofed packets
+          # Send spoofed packets with root
           for i in {1..100}; do
             spoofed_ip=$(shuf -i 10-254 -n 1).$(shuf -i 10-254 -n 1).$(shuf -i 10-254 -n 1).$(shuf -i 10-254 -n 1)
             echo "Sending packet from $spoofed_ip to 45.131.64.160:19081"
-            hping3 -c 1 -S -p 19081 --spoof $spoofed_ip 45.131.64.160
-            sleep 0.1  # Prevent flooding
+            sudo hping3 -c 1 -S -p 19081 --spoof $spoofed_ip 45.131.64.160
+            sleep 0.1
           done
           
           # Stop capture and analyze
           sleep 2
           sudo kill $CAPTURE_PID
-          tcpdump -r spoofed.pcap -nn -v | grep "45.131.64.160"
+          sudo tcpdump -r spoofed.pcap -nn -v | grep "45.131.64.160"
